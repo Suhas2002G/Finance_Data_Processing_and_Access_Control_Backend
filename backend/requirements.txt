@@ -4,4 +4,9 @@ uvicorn
 python-dotenv
 slowapi
 loguru
+python-jose[cryptography]
+passlib[bcrypt]
+
+
+
 

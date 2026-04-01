@@ -7,7 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.135.2",
     "loguru>=0.7.3",
+    "passlib[bcrypt]>=1.7.4",
     "python-dotenv>=1.2.2",
+    "python-jose[cryptography]>=3.5.0",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.48",
     "uvicorn>=0.42.0",
