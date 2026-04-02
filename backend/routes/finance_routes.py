@@ -27,10 +27,10 @@ async def create_transactions(request: Request):
 
 @finance_router.put("/transactions/{transaction_id}")
 @limiter.limit("5/minute")
-async def get_transactions(request: Request):
+async def update_transactions(request: Request):
     pass
 
 @finance_router.delete("/transactions/{transaction_id}")
 @limiter.limit("5/minute")
-async def get_transactions(request: Request):
+async def delete_transactions(request: Request):
     pass

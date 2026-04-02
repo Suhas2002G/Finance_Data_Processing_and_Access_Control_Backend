@@ -11,8 +11,8 @@ class Setting:
         self.SECRET_KEY = os.getenv("SECRET_KEY")
         self.REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRET_KEY")
         self.ALGORITHM = os.getenv("ALGORITHM")
-        self.ACCESS_EXPIRE_MIN = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
-        self.REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+        self.REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
 
         # Frontend URL
         self.FRONTEND_URL = os.getenv("FRONTEND_URL")

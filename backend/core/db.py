@@ -7,7 +7,7 @@ DATABASE_URL = "sqlite:///./finance.db"
 # Engine
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False}  # required for SQLite
+    connect_args={"check_same_thread": False} 
 )
 
 # Session
