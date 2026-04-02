@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 
 class Role(str, Enum):
@@ -20,7 +19,6 @@ class Permission(str, Enum):
 # Role → Permission Mapping
 ROLE_PERMISSIONS = {
     Role.VIEWER: [
-        Permission.READ_TRANSACTIONS,
         Permission.READ_DASHBOARD,
     ],
     Role.ANALYST: [

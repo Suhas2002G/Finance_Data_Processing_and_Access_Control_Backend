@@ -1,9 +1,12 @@
+# Standard Imports
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, status
 from sqlalchemy.orm import Session
 from loguru import logger
 
+# Local Imports
 from core.db import get_db
 from core.config import setting
+from services.rate_limiter import limiter
 from models.db_models import User
 from models.pydantic_schemas import CreateUser, LoginRequest
 from utils.response_generator import success_response, error_response
@@ -14,6 +17,7 @@ from services.security import (
     create_refresh_token,
     decode_token
 )
+
 
 auth_router = APIRouter(tags=["Authentication"])
 
@@ -32,7 +36,7 @@ def register_user(payload: CreateUser, db: Session = Depends(get_db)):
             name=payload.name,
             email=payload.email,
             password_hash=hash_password(payload.password),
-            role="viewer"
+            role="analyst"
         )
 
         db.add(user)
@@ -56,7 +60,8 @@ def register_user(payload: CreateUser, db: Session = Depends(get_db)):
 # LOGIN
 # -------------------------
 @auth_router.post("/login", status_code=status.HTTP_200_OK)
-def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     try:
         user = db.query(User).filter(User.email == payload.email).first()
 

@@ -1,9 +1,11 @@
 # Standard library imports
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import HTTPException
 
 # Third-party imports
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 
 # Local application imports
@@ -48,9 +50,7 @@ app.include_router(user_router, prefix="/users")
 app.include_router(finance_router, prefix="/finance")
 app.include_router(dashboard_router, prefix="/dashboard")
 
-from fastapi.responses import JSONResponse
-from fastapi import Request
-from fastapi.exceptions import HTTPException
+
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
