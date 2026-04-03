@@ -16,12 +16,12 @@ from utils.roles import Permission
 finance_router = APIRouter(tags=["Finance"])
 
 
-@finance_router.get("/transactions")
+@finance_router.get("/transactions", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
 async def fetch_all_transactions(
     request: Request,
     category: str | None = Query(default=None),
-    transaction_type: str | None = Query(default=None, alias="type"),
+    transaction_type: str | None = Query(default=None),
     start_date: datetime | None = Query(default=None),
     end_date: datetime | None = Query(default=None),
     skip: int = Query(default=0, ge=0),
@@ -73,7 +73,7 @@ async def fetch_all_transactions(
         ) from exc
 
 
-@finance_router.get("/transactions/{transaction_id}")
+@finance_router.get("/transactions/{transaction_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
 async def get_transaction(
     request: Request,
@@ -157,7 +157,7 @@ async def create_transaction(
         ) from exc
 
 
-@finance_router.put("/transactions/{transaction_id}")
+@finance_router.put("/transactions/{transaction_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
 async def update_transaction(
     request: Request,
@@ -215,7 +215,7 @@ async def update_transaction(
         ) from exc
 
 
-@finance_router.delete("/transactions/{transaction_id}")
+@finance_router.delete("/transactions/{transaction_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/minute")
 async def delete_transaction(
     request: Request,
