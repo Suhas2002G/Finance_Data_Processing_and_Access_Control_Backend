@@ -43,7 +43,19 @@ def register_user(payload: CreateUser, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
-        return success_response("User created successfully")
+        return success_response(
+            "User created successfully",
+            {
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "role": user.role,
+                    "is_active": user.is_active,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                }
+            },
+        )
 
     except HTTPException as e:
         raise e
@@ -67,6 +79,9 @@ def login(request: Request, payload: LoginRequest, response: Response, db: Sessi
 
         if not user or not verify_password(payload.password, user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="User account is inactive")
 
         access_token = create_access_token({
             "user_id": user.id,
@@ -98,7 +113,18 @@ def login(request: Request, payload: LoginRequest, response: Response, db: Sessi
 
         logger.info(f"User {user.email} logged in")
 
-        return success_response("Login successful")
+        return success_response(
+            "Login successful",
+            {
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "role": user.role,
+                    "is_active": user.is_active,
+                }
+            },
+        )
 
     except HTTPException as e:
         raise e

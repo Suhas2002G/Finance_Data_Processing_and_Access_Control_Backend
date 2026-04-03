@@ -1,77 +1,97 @@
 # Finance Data Processing and Access Control
 
-Backend-focused assignment project for a finance dashboard system with role-based access control, transaction management, and summary analytics.
+Backend assignment submission for a finance dashboard system with role-based access control, financial record management, and summary analytics.
 
 ## Overview
 
-This project implements the backend for a finance dashboard where different users interact with financial data based on role.
+This project is built with FastAPI and SQLite. It focuses on:
 
-The system currently provides:
-
-- User registration and login
-- Cookie-based JWT authentication
-- Role-based access control for `viewer`, `analyst`, and `admin`
-- Financial transaction CRUD APIs
-- Transaction filtering and pagination
-- Dashboard summary APIs for totals, category breakdown, recent activity, and monthly trends
-- SQLite-based persistence using SQLAlchemy
-- Rate limiting on API endpoints
-
-The frontend folder is present as a Vite + React scaffold, but this submission is primarily backend-focused.
+- user creation and authentication
+- role-based access control for `viewer`, `analyst`, and `admin`
+- financial transaction CRUD with filtering and pagination
+- dashboard summary APIs for totals, recent activity, category totals, and monthly trends
+- admin user management for role assignment and active/inactive status
+- input validation, consistent API responses, and rate limiting
 
 ## Tech Stack
 
-- Backend: FastAPI
-- Database: SQLite
-- ORM: SQLAlchemy
-- Auth: JWT access and refresh tokens stored in HTTP-only cookies
-- Validation: Pydantic
-- Rate limiting: SlowAPI
-- Logging: Loguru
-- Frontend scaffold: React + Vite
+- Python 3.12
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Pydantic
+- JWT via `python-jose`
+- Passlib + bcrypt
+- SlowAPI for rate limiting
+- Loguru for application logging
 
 ## Project Structure
 
 ```text
 Finance Data Processing/
-├── backend/
-│   ├── core/                 # app config, DB session, dependencies
-│   ├── models/               # SQLAlchemy models and Pydantic schemas
-│   ├── routes/               # auth, users, finance, dashboard routes
-│   ├── services/             # security and rate limiting
-│   ├── utils/                # roles, response helpers, logger
-│   ├── main.py               # FastAPI app entry point
-│   └── finance.db            # SQLite database
-├── frontend/                 # React/Vite scaffold
-├── docs/
+├── core/                  # configuration, database setup, dependencies
+├── docs/                  # assignment reference material
+├── models/                # SQLAlchemy models and Pydantic schemas
+├── routes/                # auth, users, finance, dashboard endpoints
+├── services/              # security and rate limiting helpers
+├── utils/                 # roles, logging, response helpers
+├── .env.example
+├── finance.db             # SQLite database file
+├── main.py                # FastAPI application entry point
+├── pyproject.toml
+├── requirements.txt
 └── Readme.md
 ```
 
 ## Role Model
 
-The project uses three roles:
+- `viewer`
+  Can read dashboard summaries only.
+- `analyst`
+  Can read financial records and dashboard summaries.
+- `admin`
+  Can manage users and perform full transaction CRUD in addition to read access.
 
-- `viewer`: can view dashboard summary data only
-- `analyst`: can view transactions and dashboard summary data
-- `admin`: full access to transactions and user-management related actions
+Permission checks are enforced in `core/deps.py` using dependency-based guards.
 
-Permission mapping is defined in [roles.py](/F:/Finance%20Data%20Processing/backend/utils/roles.py).
+## Authentication
 
-## Features
+Authentication uses access and refresh JWT tokens stored in HTTP-only cookies.
 
-### Authentication
+Available endpoints:
 
 - `POST /auth/register`
 - `POST /auth/login`
 - `POST /auth/refresh`
 - `POST /auth/logout`
 
-Authentication uses JWT tokens stored in cookies:
+Notes:
 
-- `access_token`
-- `refresh_token`
+- public registration creates an `analyst` user by default
+- inactive users cannot log in
+- local development cookie settings use `secure=False`
 
-### Transaction APIs
+## User Management APIs
+
+Base path: `/users`
+
+- `GET /users/me`
+  Returns the currently authenticated user.
+- `GET /users`
+  Admin only. Supports `role`, `is_active`, `skip`, and `limit`.
+- `GET /users/{user_id}`
+  Admin only.
+- `POST /users`
+  Admin only. Create a user with explicit role and active status.
+- `PATCH /users/{user_id}`
+  Admin only. Update name, role, password, and active status.
+
+Guardrails:
+
+- admins cannot deactivate themselves
+- admins cannot remove their own admin role
+
+## Financial Record APIs
 
 Base path: `/finance`
 
@@ -81,22 +101,35 @@ Base path: `/finance`
 - `PUT /finance/transactions/{transaction_id}`
 - `DELETE /finance/transactions/{transaction_id}`
 
-Supported filters for `GET /finance/transactions`:
+Supported filters on `GET /finance/transactions`:
 
 - `category`
-- `type`
+- `transaction_type`
 - `start_date`
 - `end_date`
 - `skip`
 - `limit`
 
-### Dashboard API
+Transaction fields:
+
+- `amount`
+- `type` (`income` or `expense`)
+- `category`
+- `note`
+- `date`
+
+## Dashboard API
 
 Base path: `/dashboard`
 
 - `GET /dashboard/`
 
-The dashboard summary includes:
+Supported filters:
+
+- `start_date`
+- `end_date`
+
+Returned summary data includes:
 
 - total income
 - total expenses
@@ -104,11 +137,6 @@ The dashboard summary includes:
 - category-wise totals
 - recent activity
 - monthly trends
-
-Optional filters:
-
-- `start_date`
-- `end_date`
 
 ## Data Model
 
@@ -127,41 +155,28 @@ Optional filters:
 - `id`
 - `user_id`
 - `amount`
-- `type` (`income` or `expense`)
+- `type`
 - `category`
 - `note`
 - `date`
 - `created_at`
 
-## Setup Instructions
+## Setup
 
-## Prerequisites
-
-- Python 3.12+
-- Node.js 18+ if you want to run the frontend scaffold
-
-## Backend Setup
-
-1. Move into the backend folder.
-
-```powershell
-cd backend
-```
-
-2. Create and activate a virtual environment.
+1. Create and activate a virtual environment.
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-3. Install dependencies.
+2. Install dependencies.
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in `backend/`.
+3. Create `.env` from `.env.example`.
 
 Example:
 
@@ -174,98 +189,58 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 FRONTEND_URL=http://localhost:5173
 ```
 
-5. Start the backend server.
+4. Start the server.
 
 ```powershell
 uvicorn main:app --reload
 ```
 
-Backend will run at:
-
-```text
-http://127.0.0.1:8000
-```
-
-Swagger docs:
+5. Open Swagger UI.
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## Frontend Setup
+## Example Workflow
 
-The frontend is currently a scaffold and not the primary focus of this assignment, but it can still be started.
-
-1. Move into the frontend folder.
-
-```powershell
-cd frontend
-```
-
-2. Install dependencies.
-
-```powershell
-npm install
-```
-
-3. Start the development server.
-
-```powershell
-npm run dev
-```
+1. Register a user with `POST /auth/register`.
+2. Promote that user to `admin` using `PATCH /users/{user_id}` or by updating the seeded database once for local demo.
+3. Log in with `POST /auth/login`.
+4. Create users or update their roles/status through `/users`.
+5. Create transactions through `/finance/transactions`.
+6. Review filtered records through `GET /finance/transactions`.
+7. Inspect aggregated metrics through `GET /dashboard/`.
 
 ## Validation and Error Handling
 
-The backend includes:
+The backend demonstrates:
 
-- Pydantic validation for auth and transaction payloads
-- permission checks at the dependency layer
-- consistent success/error response wrappers
-- HTTP status codes for invalid authentication, missing records, forbidden actions, and server errors
+- schema validation through Pydantic
+- permission enforcement through FastAPI dependencies
+- role validation through enums
+- `401`, `403`, `404`, `422`, and `429` responses where applicable
+- rollback on database write failures in mutating endpoints
 
 ## Persistence
 
-The project uses SQLite for simplicity. Tables are created automatically on application startup through SQLAlchemy metadata.
+SQLite is used for persistence to keep local setup simple and fast for evaluation. Tables are created from SQLAlchemy metadata when the application starts.
 
 Database file:
 
-- `backend/finance.db`
+- `finance.db`
 
-## Current Status
+## Assumptions and Tradeoffs
 
-Implemented:
+- This is an assessment-focused backend, not a production deployment.
+- SQLite was chosen for simplicity over multi-user production concerns.
+- Authentication is cookie-based because it is easy to demo with Swagger and browser clients.
+- Public registration defaults to `analyst`; admin-level user creation is available separately.
+- There is no separate migration tool in this submission; schema creation is metadata-driven.
 
-- auth flow
-- role model and permission checks
-- transaction CRUD with filters
-- dashboard analytics
-- SQLite persistence
-- rate limiting
+## Possible Extensions
 
-Still minimal or pending:
-
-- user management endpoints are placeholder-level
-- frontend app is still a scaffold
-- automated tests are not yet included
-- deployment configuration is not included
-
-## Assumptions
-
-- This project is intended for assessment and local development, not production deployment.
-- Cookie settings currently use `secure=False` for local development.
-- SQLite is used to keep setup simple and fast for evaluation.
-- Role enforcement is done at the backend level using dependency-based permission checks.
-
-## Suggested Demo Flow
-
-1. Register a user through `POST /auth/register`.
-2. Update that user in the database to an `admin` role for full access.
-3. Log in through `POST /auth/login`.
-4. Create several transactions through `POST /finance/transactions`.
-5. Fetch filtered records through `GET /finance/transactions`.
-6. Open `GET /dashboard/` to inspect summary metrics.
-
-## Notes
-
-- The root assignment was backend-oriented, so the backend is the main deliverable.
-- The frontend directory is included for completeness but is not yet connected to the APIs.
+- automated tests with `pytest` and FastAPI `TestClient`
+- token revocation / blacklist support
+- soft delete for transactions
+- search support across notes and categories
+- richer audit logging
